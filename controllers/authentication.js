@@ -127,7 +127,7 @@ const signup = async (req, res) => {
         html: `
           <h1> Welcome to the ChatterBox Messaging Hub  ! </h1>
           <p> We are happy to onboard you </p>
-          <a href="process.env.BACKEND_URL/auth/activate-account/${token}"> Click here to verify your email </a>
+          <a href="{process.env.BACKEND_URL}/auth/activate-account/${token}"> Click here to verify your email </a>
         `,
       };
 
