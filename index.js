@@ -30,5 +30,10 @@ app.use("/auth", authRoutes);
 app.use("/messages", messagesRoutes);
 app.use("/friends", friendsRoutes);
 
-const PORT = 8000;
+let PORT ;
+if(process.env.PORT){
+  PORT =process.env.PORT
+}else{
+  PORT = 8000
+}
 app.listen(PORT, () => console.log(`server is running at : ${PORT}`));

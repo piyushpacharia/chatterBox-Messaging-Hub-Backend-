@@ -62,19 +62,12 @@ const signup = async (req, res) => {
     return res.status(401).json({ success: false, message: "Invalid Data" });
 
   try {
-    const user = await User.findOne({ email: email });
+    const existingUser = await User.findOne({ email: email });
 
-    if (user) {
-      if (user.verified === false) {
-        const hashPassword = bcrypt.hashSync(password, 10);
-        const newUser = await User.create({
-          name,
-          email,
-          password: hashPassword,
-        });
-
-        // Sending activation email for the new user
-        const token = jwt.sign({ _id: newUser._id }, process.env.HASH_PASS);
+    if (existingUser) {
+      if (existingUser.verified === false) {
+        // If the user exists but is not verified, resend the activation email
+        const token = jwt.sign({ _id: existingUser._id }, process.env.HASH_PASS);
 
         let mailTransporter = nodemailer.createTransport({
           service: "gmail",
@@ -85,13 +78,13 @@ const signup = async (req, res) => {
         });
 
         let mailDetails = {
-          to: newUser.email,
+          to: existingUser.email,
           from: process.env.USER,
           subject: "Activate Your ChatterBox Messaging Hub Account !",
           html: `
             <h1> Welcome to the ChatterBox Messaging Hub ! </h1>
             <p> We are happy to onboard you </p>
-            <a href="http://127.0.0.1:8000/auth/activate-account/${token}"> Click here to verify your email </a>
+            <a href="${process.env.BACKEND_URL}/auth/activate-account/${token}"> Click here to verify your email </a>
           `,
         };
 
@@ -99,7 +92,7 @@ const signup = async (req, res) => {
 
         return res.status(200).json({
           success: true,
-          message: "Account activation link has been sent to your email",
+          message: "Account activation link has been resent to your email",
         });
       } else {
         return res.status(401).json({
@@ -108,6 +101,7 @@ const signup = async (req, res) => {
         });
       }
     } else {
+      // User does not exist, create a new user
       const hashPassword = bcrypt.hashSync(password, 10);
       const newUser = await User.create({
         name,
@@ -133,7 +127,7 @@ const signup = async (req, res) => {
         html: `
           <h1> Welcome to the ChatterBox Messaging Hub  ! </h1>
           <p> We are happy to onboard you </p>
-          <a href="http://127.0.0.1:8000/auth/activate-account/${token}"> Click here to verify your email </a>
+          <a href="process.env.BACKEND_URL/auth/activate-account/${token}"> Click here to verify your email </a>
         `,
       };
 
@@ -152,6 +146,7 @@ const signup = async (req, res) => {
   }
 };
 
+
 const activateAccount = async (req, res) => {
   const token = req.params.token;
   try {
@@ -161,7 +156,7 @@ const activateAccount = async (req, res) => {
       verified: true,
     });
     
-    res.json({ success: true });
+    res.redirect("https://chatter-box-messaging-hub.vercel.app/")
   } catch (err) {
     res.json({ success: false, message: "Link Expired" });
   }
@@ -207,7 +202,7 @@ const sendForgetPasswordLink = async (req, res) => {
         <h3>ChatterBox Messaging Hub</h3>
           <p> Hey ${user.name}, Click on the following link to update your password </p>
         
-          <a style="padding:10px; background-color: dodgerblue" href="http://localhost:5173/forget-password/set-password/${newToken2}"> Update Password </a>
+          <a style="padding:10px; background-color: dodgerblue" href="${process.env.FRONTEND_URL}/forget-password/set-password/${newToken2}"> Update Password </a>
   
           <p> If it's not done by you, just ignore it </p>
           `,
@@ -291,7 +286,7 @@ const fetchUserAboutInfo = (req, res) => {
         return res.status(200).json({ success: true, message: user.About });
       })
       .catch((err) => {
-        return res.status(401).jso({ success: false, message: err.message });
+        return res.status(401).json({ success: false, message: err.message });
       });
   } catch {
     return res
