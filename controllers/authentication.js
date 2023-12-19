@@ -161,7 +161,8 @@ const activateAccount = async (req, res) => {
       verified: true,
     });
     
-    res.json({ success: true });
+   .then(()=>{
+      res.redirect("https://chatter-box-messaging-hub.vercel.app/"))
   } catch (err) {
     res.json({ success: false, message: "Link Expired" });
   }
