@@ -288,7 +288,7 @@ const fetchUserAboutInfo = (req, res) => {
     const data = jwt.verify(token, process.env.HASH_PASS);
     User.findOne({ _id: data._id })
       .then((user) => {
-        return res.status(200).json({ success: true, aboutInfo: user.About });
+        return res.status(200).json({ success: true, message: user.About });
       })
       .catch((err) => {
         return res.status(401).jso({ success: false, message: err.message });
