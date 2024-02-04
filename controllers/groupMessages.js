@@ -22,7 +22,7 @@ const sendMessage = async (req, res) => {
       message: message,
       receiver: groupId,
     });
-
+const newMessageToBeSent = await GroupMessages.findById(newMessage._id).populate("sender", "name profilePic")
     if (!newMessage) {
       return res.status(400).json({
         success: false,
@@ -31,7 +31,7 @@ const sendMessage = async (req, res) => {
     }
 
     let io = getSocket();
-    io.to(groupId).emit("new-group-message", newMessage);
+    io.to(groupId).emit("new-group-message", newMessageToBeSent);
 
     return res.status(200).json({ success: true, message: "Message Sent" });
   } catch (err) {

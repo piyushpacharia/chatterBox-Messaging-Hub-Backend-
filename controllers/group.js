@@ -181,6 +181,52 @@ const deleteGroup = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+const uploadGroupProfilePic = async (req, res) => {
+  const groupId = req.params.groupId;
+  const userId = req.user._id;
+  try {
+    // Check if the user is a member of the group
+    const group = await GroupChat.findOne({
+      _id: groupId,
+      groupMembers: userId
+    });
+
+    // If no group found or user not a member, return 404
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        message: "Group not found or user not a member of the group."
+      });
+    }
+
+    // Check if file was uploaded
+    if (!req.file || !req.file.location) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded or file location not provided."
+      });
+    }
+
+    // Update the group profile picture
+    group.groupImage = req.file.location;
+    await group.save();
+
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: "File Uploaded",
+      profilePic: group.groupImage
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to upload ProfilePic"
+    });
+  }
+};
+
 module.exports = {
   createGroup,
   fetchAllGroups,
@@ -188,4 +234,5 @@ module.exports = {
   fetchGroupMembers,
   removeMember,
   deleteGroup,
+  uploadGroupProfilePic
 };
